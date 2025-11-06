@@ -22,7 +22,7 @@ public:
    */
   PeriodicBox(std::array<double, 3> minCorner, std::array<double, 3> maxCorner,
               std::array<bool, 3> periodicity)
-      : minCorner_{minCorner}, maxCorner_{maxCorner} {}
+      : minCorner_{minCorner}, maxCorner_{maxCorner}, periodicity_(periodicity) {}
 
   /**
    * @brief The box's minimum (left-front-bottom) corner
@@ -53,7 +53,7 @@ public:
    * Transform them into the box using `mapIntoBox` first.
    */
   double sqrDistance(std::array<double, 3> pointA,
-                     std::array<double, 3> pointB);
+                     std::array<double, 3> pointB) const;
 
   /**
    * @brief Compute the euclidean distance of two points with respect to the

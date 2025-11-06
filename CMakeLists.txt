@@ -4,6 +4,7 @@ project( oktal LANGUAGES CXX )
 set( CMAKE_CXX_STANDARD 23 )
 set( CMAKE_CXX_STANDARD_REQUIRED )
 set( CMAKE_COMPILE_WARNING_AS_ERROR ON )
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_options(-Wall -Wextra -Wconversion)
 
 #   Create libraries

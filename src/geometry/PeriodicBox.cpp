@@ -16,14 +16,14 @@ PeriodicBox::mapIntoBox(std::array<double, 3> point) const {
   };
 
   return {
-      mapToInterval(point[0], minCorner_[0], maxCorner_[0]),
-      mapToInterval(point[1], minCorner_[1], maxCorner_[1]),
-      mapToInterval(point[2], minCorner_[2], maxCorner_[2]),
+      periodicity_[0] ? mapToInterval(point[0], minCorner_[0], maxCorner_[0]) : point[0],
+      periodicity_[1] ? mapToInterval(point[1], minCorner_[1], maxCorner_[1]) : point[1],
+      periodicity_[2] ? mapToInterval(point[2], minCorner_[2], maxCorner_[2]) : point[2],
   };
 }
 
 double PeriodicBox::sqrDistance(std::array<double, 3> pointA,
-                                std::array<double, 3> pointB) {
+                                std::array<double, 3> pointB) const {
   auto periodicDistance = [&, this](size_t coord) {
     if(!periodicity_[coord]){
       return pointA[coord] - pointB[coord];
