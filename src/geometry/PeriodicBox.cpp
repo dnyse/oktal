@@ -29,19 +29,19 @@ double PeriodicBox::sqrDistance(std::array<double, 3> pointA,
       return pointA[coord] - pointB[coord];
     }
 
-    double lower{ minCorner_[coord] };
-    double upper{ maxCorner_[coord] };
-    double p0{ pointA[coord] };
-    double p1{ pointB[coord] };
+    const double lower{ minCorner_[coord] };
+    const double upper{ maxCorner_[coord] };
+    const double p0{ pointA[coord] };
+    const double p1{ pointB[coord] };
 
     return std::min({std::abs(p0 - p1),
                      std::abs(p0 - (lower - (upper - p1))),
                      std::abs(p0 - (upper + (p1 - lower)))});
   };
 
-  double dx{ periodicDistance(0) };
-  double dy{ periodicDistance(1) };
-  double dz{ periodicDistance(2) };
+  const double dx{ periodicDistance(0) };
+  const double dy{ periodicDistance(1) };
+  const double dz{ periodicDistance(2) };
 
   return dx * dx + dy * dy + dz * dz;
 
