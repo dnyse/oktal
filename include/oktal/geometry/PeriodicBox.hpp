@@ -2,7 +2,7 @@
 
 #include <array>
 #include <cmath>
-#include <cstdint>
+//#include <cstdint>
 
 namespace oktal {
 

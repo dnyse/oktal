@@ -15,7 +15,7 @@
 
 2. **Generate the build system:**
 ```bash
-   cmake -S . -B build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_COMPILER=clang++-19
 ```
 
 3. **Build the project:**
@@ -45,3 +45,11 @@ ctest -R <test-name-pattern>
 - **Clean build artifacts:** `cmake --build build --target clean`
 - **Clean and rebuild:** `cmake --build build --clean-first`
 - **Fresh configuration:** `cmake --fresh -S . -B build`
+
+### Linter
+Run clang-tid:
+```bash
+cd build
+run-clang-tidy-19 -p .
+```
+
