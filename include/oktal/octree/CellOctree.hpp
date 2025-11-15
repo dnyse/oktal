@@ -100,7 +100,10 @@ public:
 
   static CellOctree fromDescriptor(std::string_view descriptor);
 
-  static Node parse_node_char(char c);
+  static Node parseNodeChar(char c);
+  static void validateSeperator(std::size_t nodes_on_current_level,
+                                std::size_t current_level,
+                                std::size_t expected_nodes_current_level);
 };
 
 } // namespace oktal

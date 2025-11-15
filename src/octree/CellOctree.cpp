@@ -13,12 +13,12 @@ CellOctree::nodesStream(std::size_t level) const {
   }
   const std::size_t start_index = level_start_idx_.at(level);
   const std::size_t count = nodes_per_level_.at(level);
-  std::span<const Node> complete_stream{nodes_};
+  const std::span<const Node> complete_stream{nodes_};
 
   return complete_stream.subspan(start_index, count);
 }
 
-CellOctree::Node CellOctree::parse_node_char(const char c) {
+CellOctree::Node CellOctree::parseNodeChar(const char c) {
   bool refined = false;
   bool phantom = false;
 
@@ -41,6 +41,27 @@ CellOctree::Node CellOctree::parse_node_char(const char c) {
   return {refined, phantom};
 }
 
+void CellOctree::validateSeperator(
+    const std::size_t nodes_on_current_level, const std::size_t current_level,
+    const std::size_t expected_nodes_current_level) {
+  if (nodes_on_current_level == 0) {
+    throw std::invalid_argument("Descriptor invalid: Empty level detected.");
+  }
+  // The root level (level 0) is always 1. All subsequent levels must be
+  // a multiple of 8.
+  if (current_level > 0 && nodes_on_current_level % 8 != 0) {
+    throw std::invalid_argument(
+        "Descriptor invalid: Level size not a multiple of 8 (after root).");
+  }
+
+  if (current_level > 0 &&
+      nodes_on_current_level != expected_nodes_current_level) {
+    throw std::invalid_argument(
+        "Descriptor invalid: Incorrect number of children for previous "
+        "level's refined nodes.");
+  }
+}
+
 CellOctree CellOctree::fromDescriptor(std::string_view descriptor) {
   CellOctree octree;
   // Clear the default root node
@@ -57,41 +78,27 @@ CellOctree CellOctree::fromDescriptor(std::string_view descriptor) {
 
   octree.level_start_idx_.push_back(0);
 
-  for (char c : descriptor) {
+  for (const char c : descriptor) {
     if (c == '|') {
-
-      if (nodes_on_current_level == 0) {
-        throw std::invalid_argument(
-            "Descriptor invalid: Empty level detected.");
-      }
-      // The root level (level 0) is always 1. All subsequent levels must be
-      // a multiple of 8.
-      if (current_level > 0 && nodes_on_current_level % 8 != 0) {
-        throw std::invalid_argument(
-            "Descriptor invalid: Level size not a multiple of 8 (after root).");
-      }
-
-      if (current_level > 0 && nodes_on_current_level != expected_nodes_current_level) {
-        throw std::invalid_argument(
-            "Descriptor invalid: Incorrect number of children for previous "
-            "level's refined nodes.");
-      }
+      validateSeperator(nodes_on_current_level, current_level,
+                        expected_nodes_current_level);
 
       // Finalize level data
       octree.nodes_per_level_.push_back(nodes_on_current_level);
       current_level++;
       nodes_on_current_level = 0;
-      expected_nodes_current_level = expected_children_count; // Save for next level
+      expected_nodes_current_level =
+          expected_children_count; // Save for next level
       expected_children_count = 0;
       octree.level_start_idx_.push_back(octree.nodes_.size());
 
     } else {
 
-      CellOctree::Node node = parse_node_char(c);
+      const CellOctree::Node node = parseNodeChar(c);
 
       if (current_level > 0 && (nodes_on_current_level % 8 == 0)) {
 
-        std::size_t children_start_idx = octree.nodes_.size();
+        const std::size_t children_start_idx = octree.nodes_.size();
 
         if (refined_parents.empty()) {
           throw std::invalid_argument("Descriptor invalid: Found children "
@@ -99,7 +106,7 @@ CellOctree CellOctree::fromDescriptor(std::string_view descriptor) {
         }
 
         // Get the parent index from the queue
-        std::size_t parent_idx = refined_parents.front();
+        const std::size_t parent_idx = refined_parents.front();
         refined_parents.pop();
 
         // Check for over-refinement
@@ -129,7 +136,8 @@ CellOctree CellOctree::fromDescriptor(std::string_view descriptor) {
                                 "without corresponding children block.");
   }
   // Validate last level
-  if (current_level > 0 && nodes_on_current_level != expected_nodes_current_level) {
+  if (current_level > 0 &&
+      nodes_on_current_level != expected_nodes_current_level) {
     throw std::invalid_argument(
         "Descriptor invalid: Incorrect number of children for previous "
         "level's refined nodes.");
