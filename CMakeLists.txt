@@ -7,8 +7,14 @@ set( CMAKE_COMPILE_WARNING_AS_ERROR ON )
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_options(-Wall -Wextra -Wconversion)
 
-#   Create libraries
+# Activate the htgfile interface library provided by AdvPT
+option(ADVPT_ENABLE_HTGFILE "" ON)
 
+# Tell CMake where Spack installed hdf5 + HighFive
+set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/.spack-env/view" ${CMAKE_PREFIX_PATH})
+
+
+#   Create libraries
 add_library( oktal )
 
 target_include_directories( oktal PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include )
@@ -24,6 +30,7 @@ FetchContent_Declare(
     URL https://teaching.pages.i10git.cs.fau.de/advpt-exercise-ws2526/assets/advpt-helpers.tar.gz
 )
 FetchContent_MakeAvailable( advpt-helpers )
+target_link_libraries(oktal PUBLIC advpt::htgfile)
 
 #   Add test suite
 

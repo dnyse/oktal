@@ -1,0 +1,1 @@
+/home/dhuber/.source/spack/opt/spack/linux-skylake/openmpi-5.0.9-gsf46dqucupsqsu6q76lzb5dwfsxe4nq/share/doc/openmpi/html/_static/searchtools.js

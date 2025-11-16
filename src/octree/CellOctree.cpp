@@ -146,4 +146,47 @@ CellOctree CellOctree::fromDescriptor(std::string_view descriptor) {
 
   return octree;
 }
+std::optional<CellOctree::CellView>
+CellOctree::getCell(MortonIndex m_idx) const {
+
+  // Check if root cell
+  if (m_idx.isRoot()) {
+    return getRootCell();
+  }
+
+  std::size_t current_node_index = 0;
+  const std::size_t target_level = m_idx.level();
+
+  for (std::size_t level = 0; level < target_level; ++level) {
+
+    const Node &parent_node = nodes_.at(current_node_index);
+
+    if (!parent_node.isRefined()) {
+      return std::nullopt;
+    }
+
+    const std::size_t branch_index = m_idx.getBranchIndex(level);
+
+    current_node_index = parent_node.childIndex(branch_index);
+
+    if (current_node_index >= nodes_.size()) {
+      return std::nullopt;
+    }
+  }
+  const Node &target_node = nodes_.at(current_node_index);
+  if (target_node.isPhantom()) {
+    return std::nullopt;
+  }
+  return CellView(target_node, m_idx, current_node_index, geometry());
+}
+bool CellOctree::cellExists(MortonIndex m_idx) const {
+  return getCell(m_idx).has_value();
+}
+std::optional<CellOctree::CellView> CellOctree::getRootCell() const {
+  if (nodes_.empty() || nodes_.at(0).isPhantom()) {
+    return std::nullopt;
+  }
+  return CellOctree::CellView(nodes_.at(0), MortonIndex(), 0uz, geometry());
+}
+
 } // namespace oktal

@@ -1,0 +1,1 @@
+/home/dhuber/.source/spack/opt/spack/linux-skylake/gettext-0.23.1-ii4qlxt6j4m5vz3akdoutcrhzxervykd/share/gettext/po/insert-header.sed

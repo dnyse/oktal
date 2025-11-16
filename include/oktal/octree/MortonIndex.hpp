@@ -94,17 +94,13 @@ public:
     return MortonIndex((this->_m_idx << 3) | (idx & 0b111));
   }
 
-  // safeChild is complex due to validation -> Declared here, defined in .cpp
   [[nodiscard]] auto safeChild(morton_bits_t idx) const -> MortonIndex;
-
-  // --- Operators (Defined Inline) ---
 
   bool operator==(const MortonIndex &other) const {
     return this->_m_idx == other._m_idx;
   }
   bool operator!=(const MortonIndex &other) const { return !(*this == other); }
 
-  // Partial Order Operators (Declared here, defined in .cpp due to complexity)
   bool operator>(const MortonIndex &y) const;
   bool operator<(const MortonIndex &y) const;
   bool operator>=(const MortonIndex &y) const {
@@ -118,6 +114,21 @@ public:
 
   static MortonIndex fromGridCoordinates(std::size_t level,
                                          const Vec<std::size_t, 3> &coords);
+
+  // NOTE: Helper function not given by tasks.
+  [[nodiscard]] morton_bits_t
+  getBranchIndex(std::size_t traversal_level) const {
+    const std::size_t current_level = this->level();
+    if (traversal_level >= current_level) {
+      throw std::out_of_range(
+          "Traversal level exceeds the MortonIndex's depth.");
+    }
+    const size_t remaining_levels_to_target =
+        current_level - 1 - traversal_level;
+    const size_t bits_to_shift = 3 * remaining_levels_to_target;
+
+    return (this->_m_idx >> bits_to_shift) & 0b111;
+  }
 };
 
 } // namespace oktal

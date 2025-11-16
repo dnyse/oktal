@@ -1,4 +1,6 @@
 #pragma once
+#include "oktal/octree/MortonIndex.hpp"
+#include "oktal/octree/OctreeGeometry.hpp"
 #include <cstddef>
 #include <span>
 #include <string_view>
@@ -14,7 +16,7 @@ public:
     // first child and the rest are stored in contiguos memory
     std::size_t data_;
 
-    //  Most significant bit (ULL = unsigned long long)
+    // Most significant bit (ULL = unsigned long long)
     // REFINED: All eight children are appended to the stream, ordered by their
     // Morton indices
     static constexpr std::size_t REFINED_MASK = 1ULL << 63;
@@ -72,18 +74,43 @@ public:
     }
   };
 
+  class CellView {
+  private:
+    Node node_;
+    MortonIndex morton_index_;
+    std::size_t stream_index_;
+    OctreeGeometry geometry_;
+
+  public:
+    CellView() = default;
+    CellView(Node node, MortonIndex m_idx, std::size_t stream_idx,
+             const OctreeGeometry &geom)
+        : node_(node), morton_index_(m_idx), stream_index_(stream_idx),
+          geometry_(geom) {}
+    [[nodiscard]] MortonIndex mortonIndex() const { return morton_index_; }
+    [[nodiscard]] bool isRoot() const { return morton_index_.isRoot(); }
+    [[nodiscard]] bool isRefined() const { return node_.isRefined(); }
+    [[nodiscard]] size_t level() const { return morton_index_.level(); }
+    [[nodiscard]] size_t streamIndex() const { return stream_index_; }
+    [[nodiscard]] Vec<double, 3> center() const {
+      return geometry_.cellCenter(morton_index_);
+    }
+    [[nodiscard]] Box<double> boundingBox() const {
+      return geometry_.cellBoundingBox(morton_index_);
+    }
+  };
+
 private:
-  std::vector<Node> nodes_;
-  std::vector<std::size_t> level_start_idx_;
-  std::vector<std::size_t> nodes_per_level_;
+  std::vector<Node> nodes_ = {{}};
+  std::vector<std::size_t> level_start_idx_ = {0};
+  std::vector<std::size_t> nodes_per_level_ = {1};
+  OctreeGeometry geometry_;
 
 public:
-  CellOctree() {
-    nodes_.emplace_back(); // Construct directly an object into a container
-                           // without a temporary
-    level_start_idx_.push_back(0);
-    nodes_per_level_.push_back(1);
-  }
+  CellOctree() = default;
+
+  CellOctree(OctreeGeometry geometry) : geometry_(geometry) {}
+
   [[nodiscard]] std::size_t numberOfNodes() const { return nodes_.size(); }
   [[nodiscard]] std::size_t numberOfLevels() const {
     return nodes_per_level_.size();
@@ -104,6 +131,10 @@ public:
   static void validateSeperator(std::size_t nodes_on_current_level,
                                 std::size_t current_level,
                                 std::size_t expected_nodes_current_level);
+  [[nodiscard]] const OctreeGeometry& geometry() const { return geometry_; }
+  [[nodiscard]] std::optional<CellView> getCell(MortonIndex m_idx) const;
+  [[nodiscard]] bool cellExists(MortonIndex m_idx) const;
+  [[nodiscard]] std::optional<CellView> getRootCell() const;
 };
 
 } // namespace oktal
