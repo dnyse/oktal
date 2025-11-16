@@ -9,3 +9,5 @@
 **/CMakeUserPresets.json
 
 **/.spack-env
+
+**/.cache
