@@ -1,1 +1,0 @@
-/home/dhuber/.source/spack/opt/spack/linux-skylake/libiconv-1.18-ozmigc23g53pkbsoaagbybd4htynnfw7/share/locale/pt_BR/LC_MESSAGES/libiconv.mo

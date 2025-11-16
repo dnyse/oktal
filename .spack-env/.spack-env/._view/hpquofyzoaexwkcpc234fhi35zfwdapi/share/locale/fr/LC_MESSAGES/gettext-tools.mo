@@ -1,1 +1,0 @@
-/home/dhuber/.source/spack/opt/spack/linux-skylake/gettext-0.23.1-ii4qlxt6j4m5vz3akdoutcrhzxervykd/share/locale/fr/LC_MESSAGES/gettext-tools.mo

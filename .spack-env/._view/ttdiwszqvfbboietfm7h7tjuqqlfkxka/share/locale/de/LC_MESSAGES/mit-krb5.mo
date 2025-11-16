@@ -1,1 +1,0 @@
-/home/dhuber/.source/spack/opt/spack/linux-skylake/krb5-1.21.3-notucqipl4n6hhoizmnm6cc3ojmxegsq/share/locale/de/LC_MESSAGES/mit-krb5.mo

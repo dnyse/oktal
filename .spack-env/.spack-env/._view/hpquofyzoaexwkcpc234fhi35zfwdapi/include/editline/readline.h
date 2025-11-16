@@ -1,1 +1,0 @@
-/home/dhuber/.source/spack/opt/spack/linux-skylake/libedit-3.1-20240808-22wfav7cu236pqsjvcd7vi7vc634iqx3/include/editline/readline.h
