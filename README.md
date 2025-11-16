@@ -78,12 +78,4 @@ Independent environments can be located in any directory outside of Spack.
 ```bash
 spack env activate --create ./spack-env
 ```
-### Environment Views
-Spack Environments can have an associated filesystem view, which is a directory with a more traditional structure <view>/bin, <view>/lib, <view>/include in which all files of the installed packages are linked.
-```bash
-.spack-env
-├── spack.lock
-├── spack.yaml
-└── view -> /home/$USER/University/EUMaster4HPC/ws2025-group-45/.spack-env/._view/ttdiwszqvfbboietfm7h7tjuqqlfkxka
-```
 The Spack docs can be found [here](https://spack.readthedocs.io/en/latest/environments.html#independent-environments).
