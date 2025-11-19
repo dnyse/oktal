@@ -131,7 +131,7 @@ public:
   static void validateSeperator(std::size_t nodes_on_current_level,
                                 std::size_t current_level,
                                 std::size_t expected_nodes_current_level);
-  [[nodiscard]] const OctreeGeometry& geometry() const { return geometry_; }
+  [[nodiscard]] const OctreeGeometry &geometry() const { return geometry_; }
   [[nodiscard]] std::optional<CellView> getCell(MortonIndex m_idx) const;
   [[nodiscard]] bool cellExists(MortonIndex m_idx) const;
   [[nodiscard]] std::optional<CellView> getRootCell() const;

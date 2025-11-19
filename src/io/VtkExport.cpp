@@ -5,8 +5,9 @@
 namespace oktal::io::vtk {
 using advpt::htgfile::HyperTree;
 
-// WARN: Because the bit streams are packed (for both mask and description) in uint8_t including the root node,
-// the byte boundary falls between the 7th and 8th child. So the last child can always be found in the next uint8_t
+// WARN: Because the bit streams are packed (for both mask and description) in
+// uint8_t including the root node, the byte boundary falls between the 7th and
+// 8th child. So the last child can always be found in the next uint8_t
 const auto pack_bits =
     [](const std::vector<uint8_t> &bits) -> std::vector<uint8_t> {
   std::vector<uint8_t> bytes;
@@ -39,6 +40,7 @@ const auto createHyperTree = [](const CellOctree &octree,
   hyperTree.zCoords = {min_corner[2], max_corner[2]};
   std::vector<uint8_t> descriptor_bits;
   std::vector<uint8_t> mask_bits;
+  std::vector<MortonIndex> pseudo_phantom;
 
   const std::size_t levels = octree.numberOfLevels();
   for (std::size_t level = 0; level < levels; ++level) {
@@ -48,7 +50,7 @@ const auto createHyperTree = [](const CellOctree &octree,
       if (level < levels - 1) {
         descriptor_bits.push_back(node.isRefined() ? 1 : 0);
       }
-      mask_bits.push_back(node.isPhantom() ? 1 : 0);
+      mask_bits.push_back(node.isPhantom() && !node.isRefined() ? 1 : 0);
       level_data.push_back(static_cast<int>(level));
     }
   }

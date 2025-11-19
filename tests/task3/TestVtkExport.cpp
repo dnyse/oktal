@@ -118,9 +118,7 @@ void testComplexTree() {
   h5file.getDataSet("VTKHDF/Mask").read(mask);
   advpt::testing::assert_range_equal(
       mask,
-      // std::array{uint8_t(1), uint8_t(120), uint8_t(7), uint8_t(128), uint8_t(0),
-                 // uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)});
-      std::array{uint8_t(163), uint8_t(120), uint8_t(7), uint8_t(128), uint8_t(0),
+      std::array{uint8_t(1), uint8_t(120), uint8_t(7), uint8_t(128), uint8_t(0),
                  uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)});
 #else
   advpt::testing::dont_compile();

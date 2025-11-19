@@ -188,5 +188,4 @@ std::optional<CellOctree::CellView> CellOctree::getRootCell() const {
   }
   return CellOctree::CellView(nodes_.at(0), MortonIndex(), 0uz, geometry());
 }
-
 } // namespace oktal
