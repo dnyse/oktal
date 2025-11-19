@@ -40,7 +40,6 @@ const auto createHyperTree = [](const CellOctree &octree,
   hyperTree.zCoords = {min_corner[2], max_corner[2]};
   std::vector<uint8_t> descriptor_bits;
   std::vector<uint8_t> mask_bits;
-  std::vector<MortonIndex> pseudo_phantom;
 
   const std::size_t levels = octree.numberOfLevels();
   for (std::size_t level = 0; level < levels; ++level) {
