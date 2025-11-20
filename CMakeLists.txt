@@ -32,6 +32,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable( advpt-helpers )
 target_link_libraries(oktal PUBLIC advpt::htgfile)
 
+# debugging application
+
+add_subdirectory(apps)
+
 #   Add test suite
 
 option( OKTAL_BUILD_TESTSUITE "Build the Oktal test suite" ON )
