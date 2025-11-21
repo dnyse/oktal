@@ -7,3 +7,7 @@
 
 #   CMake Presets
 **/CMakeUserPresets.json
+
+**/.spack-env
+
+**/.cache
