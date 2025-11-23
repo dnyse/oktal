@@ -100,6 +100,181 @@ public:
     }
   };
 
+  class OctreeCursor {
+  public:
+    // default constructor
+    OctreeCursor() : octree_(nullptr), path_() {}
+
+    // constructor with octree reference
+    OctreeCursor(const CellOctree& octree) : octree_(&octree), path_{0} {}
+    
+    // constructor with octree reference and path
+    OctreeCursor(const CellOctree& octree, std::span<const std::size_t> path) : 
+                      octree_(&octree), path_(path.begin(), path.end()) {}
+     
+    [[nodiscard]] const CellOctree* octree() const {
+      return octree_;
+    }
+
+    [[nodiscard]] std::span<const std::size_t> path() const {
+      return std::span<const std::size_t>(path_.data(), path_.size());
+    }
+
+    // Observers
+
+    [[nodiscard]] bool empty() const {
+      return octree_ == nullptr;
+    }
+
+    [[nodiscard]] bool end() const {
+      return octree_ != nullptr && path_.empty();
+    }
+
+    [[nodiscard]] std::size_t currentLevel() const {
+      return path_.empty() ? 0 : path_.size() - 1;
+    }
+
+    [[nodiscard]] std::size_t currentStreamIndex() const {
+      return path_.back();
+    }
+
+    [[nodiscard]] std::optional<CellOctree::CellView> currentCell() const {
+      if (end() || empty()) {
+        return std::nullopt;
+      }
+      return octree_->getCell(mortonIndex());
+    }
+
+    [[nodiscard]] bool firstSibling() const {
+      if (end() || empty()) {
+        return false;
+      }
+      return mortonIndex().isFirstSibling();
+    }
+
+    [[nodiscard]] bool lastSibling() const {
+      if (end() || empty()) {
+        return false;
+      }
+      return mortonIndex().isLastSibling();
+    }
+
+    [[nodiscard]] MortonIndex mortonIndex() const {
+      if (end() || empty()) {
+        return MortonIndex();
+      }
+
+      std::vector<morton_bits_t> branches;
+      branches.reserve(path_.size());
+
+      for (std::size_t i = 1; i < path_.size(); ++i) {
+        const Node& parent = octree_->nodesStream()[path_[i - 1]]; 
+        std::size_t branch = path_[i] - parent.childrenStartIndex();
+        branches.push_back(static_cast<morton_bits_t>(branch));
+      }
+
+      return MortonIndex::fromPath(branches);
+    }
+
+    [[nodiscard]] bool operator==(const OctreeCursor& other) const {
+      return octree_ == other.octree_ && path_ == other.path_;
+    }
+
+    [[nodiscard]] bool operator!=(const OctreeCursor& other) const {
+      return !(*this == other);
+    }
+
+    // Traversal
+
+    void ascend() {
+      if (!path_.empty()) {
+        path_.pop_back();
+      }
+    }
+
+    void descend() {
+      if (end() || empty()) {
+        return;
+      }
+
+      const Node& currentNode = octree_->nodesStream()[currentStreamIndex()];
+      if (currentNode.isRefined()) {
+        path_.push_back(currentNode.childrenStartIndex());
+      }      
+    }
+
+    void descend(std::size_t childIdx) {
+      if (childIdx > 7) {
+        throw std::out_of_range("Child index must be between 0 and 7.");
+      }
+
+      if (end() || empty()) {
+        return;
+      }
+
+      const Node& currentNode = octree_->nodesStream()[currentStreamIndex()];
+      if (currentNode.isRefined()) {
+        path_.push_back(currentNode.childIndex(childIdx));
+      }      
+    }
+
+    void previousSibling() {
+      if (end() || empty() || mortonIndex().isFirstSibling()) {
+        return;
+      }
+      
+      std::size_t currentIdx = currentStreamIndex();
+      const Node& parentNode = octree_->nodesStream()[path_[path_.size() - 2]];
+      std::size_t firstSiblingIdx = parentNode.childIndex(0);
+    
+      if (currentIdx > firstSiblingIdx) {
+        path_.back() -= 1;
+      }
+    }
+
+    void nextSibling() {
+      if (end() || empty() || mortonIndex().isLastSibling()) {
+        return;
+      }
+      
+      std::size_t currentIdx = currentStreamIndex();
+      const Node& parentNode = octree_->nodesStream()[path_[path_.size() - 2]];
+      std::size_t lastSiblingIdx = parentNode.childIndex(7);
+
+      if (currentIdx < lastSiblingIdx) {
+        path_.back() += 1;
+      }
+    }
+
+    void toSibling(std::size_t siblingIdx) {
+      if (end() || empty()) {
+        return;
+      }
+      if (siblingIdx > 7) {
+        throw std::out_of_range("Sibling index must be between 0 and 7.");
+      }
+     
+      if (path_.size() == 1) {    // Root node
+        if (siblingIdx != 0) {
+          throw std::out_of_range("Root node has no siblings.");
+        }
+
+        return;
+      } else {
+        const Node& parentNode = octree_->nodesStream()[path_[path_.size() - 2]];
+        path_.back() = parentNode.childIndex(siblingIdx);
+      }
+    }
+
+    void toEnd() {
+      path_.clear();
+    }
+
+  private:
+    const CellOctree* octree_;
+    std::vector<std::size_t> path_;
+  };
+
 private:
   std::vector<Node> nodes_ = {{}};
   std::vector<std::size_t> level_start_idx_ = {0};
@@ -136,5 +311,8 @@ public:
   [[nodiscard]] bool cellExists(MortonIndex m_idx) const;
   [[nodiscard]] std::optional<CellView> getRootCell() const;
 };
+
+// alias
+using OctreeCursor = CellOctree::OctreeCursor;
 
 } // namespace oktal
