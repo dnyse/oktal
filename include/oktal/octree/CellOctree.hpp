@@ -103,7 +103,7 @@ public:
   class OctreeCursor {
   public:
     // default constructor
-    OctreeCursor() : octree_(nullptr), path_() {}
+    OctreeCursor() : octree_(nullptr) {}
 
     // constructor with octree reference
     OctreeCursor(const CellOctree& octree) : octree_(&octree), path_{0} {}
@@ -117,7 +117,7 @@ public:
     }
 
     [[nodiscard]] std::span<const std::size_t> path() const {
-      return std::span<const std::size_t>(path_.data(), path_.size());
+      return {path_.data(), path_.size()};
     }
 
     // Observers
@@ -161,7 +161,7 @@ public:
 
     [[nodiscard]] MortonIndex mortonIndex() const {
       if (end() || empty()) {
-        return MortonIndex();
+        return {};
       }
 
       std::vector<morton_bits_t> branches;
@@ -223,9 +223,9 @@ public:
         return;
       }
       
-      std::size_t currentIdx = currentStreamIndex();
+      const std::size_t currentIdx = currentStreamIndex();
       const Node& parentNode = octree_->nodesStream()[path_[path_.size() - 2]];
-      std::size_t firstSiblingIdx = parentNode.childIndex(0);
+      const std::size_t firstSiblingIdx = parentNode.childIndex(0);
     
       if (currentIdx > firstSiblingIdx) {
         path_.back() -= 1;
@@ -237,9 +237,9 @@ public:
         return;
       }
       
-      std::size_t currentIdx = currentStreamIndex();
+      const std::size_t currentIdx = currentStreamIndex();
       const Node& parentNode = octree_->nodesStream()[path_[path_.size() - 2]];
-      std::size_t lastSiblingIdx = parentNode.childIndex(7);
+      const std::size_t lastSiblingIdx = parentNode.childIndex(7);
 
       if (currentIdx < lastSiblingIdx) {
         path_.back() += 1;
@@ -260,10 +260,11 @@ public:
         }
 
         return;
-      } else {
-        const Node& parentNode = octree_->nodesStream()[path_[path_.size() - 2]];
-        path_.back() = parentNode.childIndex(siblingIdx);
       }
+
+      const Node& parentNode = octree_->nodesStream()[path_[path_.size() - 2]];
+      path_.back() = parentNode.childIndex(siblingIdx);
+      
     }
 
     void toEnd() {
