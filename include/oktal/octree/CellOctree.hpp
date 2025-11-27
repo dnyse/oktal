@@ -109,8 +109,16 @@ public:
     OctreeCursor(const CellOctree& octree) : octree_(&octree), path_{0} {}
     
     // constructor with octree reference and path
-    OctreeCursor(const CellOctree& octree, std::span<const std::size_t> path) : 
-                      octree_(&octree), path_(path.begin(), path.end()) {}
+    OctreeCursor(const CellOctree& octree, std::span<const std::size_t> path) : octree_(&octree) {
+      if (!path.empty()) {
+        
+        if (path.size() == 1) {
+          path_.push_back(0); // Root node
+          path_.push_back(path[0]); // stream index
+        } else {
+        path_.assign(path.begin(), path.end());}
+        }
+    }
      
     [[nodiscard]] const CellOctree* octree() const {
       return octree_;
@@ -324,5 +332,55 @@ concept OctreeIteratorPolicy =
   {
     { policy.advance(cursor) } -> std::same_as<void>;
   };  
+
+// iterator class template
+template <OctreeIteratorPolicy TPolicy>
+class OctreeIterator {
+public:
+  // constructor
+  OctreeIterator() = default;
+
+  OctreeIterator(OctreeCursor cursor, TPolicy policy)
+      : cursor_(cursor), policy_(policy) {}
+
+  // dereference operator
+  [[nodiscard]] CellOctree::CellView operator*() const {
+    return cursor_.currentCell().value();
+  }
+
+  // pre-increment operator
+  OctreeIterator& operator++() {
+    policy_.advance(cursor_);
+    return *this;
+  }
+
+  // post-increment operator
+  OctreeIterator operator++(int) {
+    OctreeIterator temp = *this;
+    ++(*this);
+    return temp;
+  }
+
+  // equality operator
+  [[nodiscard]] bool operator==(const OctreeIterator& other) const {
+    return cursor_ == other.cursor_;
+  }
+
+  // inequality operator
+  [[nodiscard]] bool operator!=(const OctreeIterator& other) const {
+    return !(*this == other);
+  }
+
+  // alias for iterator
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = CellOctree::CellView;
+  using difference_type = std::ptrdiff_t;
+  using pointer = const CellOctree::CellView*;
+  using reference = const CellOctree::CellView&;  
+
+private:
+    OctreeCursor cursor_;
+    TPolicy policy_;
+};
 
 } // namespace oktal
