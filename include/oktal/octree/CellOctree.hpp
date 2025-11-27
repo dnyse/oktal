@@ -383,4 +383,30 @@ private:
     TPolicy policy_;
 };
 
+// range class template
+template <OctreeIteratorPolicy TPolicy>
+class OctreeCellsRange {
+public:
+  // constructor
+  OctreeCellsRange() = default;
+
+  OctreeCellsRange(OctreeCursor start, OctreeCursor end, TPolicy policy)
+      : start_(start), end_(end), policy_(policy) {}
+
+  // begin iterator
+  [[nodiscard]] OctreeIterator<TPolicy> begin() const {
+    return OctreeIterator<TPolicy>(start_, policy_);
+  }
+
+  // end iterator
+  [[nodiscard]] OctreeIterator<TPolicy> end() const {
+    return OctreeIterator<TPolicy>(end_, policy_);
+  }
+
+private:
+  OctreeCursor start_;
+  OctreeCursor end_;
+  TPolicy policy_;
+};
+
 } // namespace oktal
