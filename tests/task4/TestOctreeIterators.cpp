@@ -6,7 +6,7 @@
 #include <iterator>
 #include <ranges>
 
-#define TEST_POLICY_CONCEPT false
+#define TEST_POLICY_CONCEPT true
 #define TEST_ITERATOR_TEMPLATE false
 #define TEST_RANGE_TEMPLATE false
 #define TEST_DFS_POLICY false

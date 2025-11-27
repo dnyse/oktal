@@ -316,4 +316,13 @@ public:
 // alias
 using OctreeCursor = CellOctree::OctreeCursor;
 
+// concept OctreeIteratorPolicy
+template<typename T>
+concept OctreeIteratorPolicy = 
+  std::semiregular<T> &&
+  requires(T const policy, OctreeCursor& cursor)
+  {
+    { policy.advance(cursor) } -> std::same_as<void>;
+  };  
+
 } // namespace oktal
