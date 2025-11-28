@@ -319,6 +319,8 @@ public:
   [[nodiscard]] std::optional<CellView> getCell(MortonIndex m_idx) const;
   [[nodiscard]] bool cellExists(MortonIndex m_idx) const;
   [[nodiscard]] std::optional<CellView> getRootCell() const;
+
+  [[nodiscard]] auto preOrderDepthFirstRange() const;
 };
 
 // alias
@@ -408,5 +410,41 @@ private:
   OctreeCursor end_;
   TPolicy policy_;
 };
+
+// DFS Policy
+class PreOrderDepthFirstPolicy {
+public:
+  void advance(OctreeCursor& cursor) const {
+    if (cursor.end() || cursor.empty()) {
+      return;
+    }
+
+    const auto currentCellOpt = cursor.currentCell();
+    if (currentCellOpt.has_value() && currentCellOpt->isRefined()) {
+      cursor.descend();
+      return;
+    }
+
+    while (true) {
+      if (!cursor.lastSibling()) {
+        cursor.nextSibling();
+        return;
+      }
+      
+      cursor.ascend(); // Go up to parent
+
+      if (cursor.end() || cursor.empty()) {
+        return;
+      }
+    }
+  }
+};
+
+inline auto CellOctree::preOrderDepthFirstRange() const {
+    return OctreeCellsRange<PreOrderDepthFirstPolicy>(
+        OctreeCursor(*this), // root cursor
+        OctreeCursor(*this, {}), // end cursor
+        PreOrderDepthFirstPolicy{});
+  }
 
 } // namespace oktal
