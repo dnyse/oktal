@@ -5,6 +5,8 @@
 #include <span>
 #include <string_view>
 #include <vector>
+#include <cassert> 
+
 namespace oktal {
 
 class CellOctree {
@@ -343,11 +345,13 @@ public:
   OctreeIterator() = default;
 
   OctreeIterator(OctreeCursor cursor, TPolicy policy)
-      : cursor_(cursor), policy_(policy) {}
+      : cursor_(std::move(cursor)), policy_(std::move(policy)) {}
 
   // dereference operator
   [[nodiscard]] CellOctree::CellView operator*() const {
-    return cursor_.currentCell().value();
+    auto cellOpt = cursor_.currentCell();
+    assert(cellOpt.has_value() && "Dereferencing an invalid iterator.");
+    return *cellOpt;
   }
 
   // pre-increment operator
@@ -393,7 +397,7 @@ public:
   OctreeCellsRange() = default;
 
   OctreeCellsRange(OctreeCursor start, OctreeCursor end, TPolicy policy)
-      : start_(start), end_(end), policy_(policy) {}
+      : start_(std::move(start)), end_(std::move(end)), policy_(std::move(policy)) {}
 
   // begin iterator
   [[nodiscard]] OctreeIterator<TPolicy> begin() const {
@@ -414,13 +418,32 @@ private:
 // DFS Policy
 class PreOrderDepthFirstPolicy {
 public:
+
   void advance(OctreeCursor& cursor) const {
+
     if (cursor.end() || cursor.empty()) {
       return;
     }
 
-    const auto currentCellOpt = cursor.currentCell();
-    if (currentCellOpt.has_value() && currentCellOpt->isRefined()) {
+    advanceToNextValid(cursor);
+
+    while (!cursor.end() && !cursor.currentCell().has_value()) {
+      advanceToNextValid(cursor);
+    }
+
+  }
+
+private:
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+  void advanceToNextValid(OctreeCursor& cursor) const {
+
+    if (cursor.end() || cursor.empty()) {
+      return;
+    }
+
+    const auto& currentNode = cursor.octree()->nodesStream()[cursor.currentStreamIndex()];
+
+    if (currentNode.isRefined()) {
       cursor.descend();
       return;
     }
@@ -428,7 +451,7 @@ public:
     while (true) {
       if (!cursor.lastSibling()) {
         cursor.nextSibling();
-        return;
+        break;
       }
       
       cursor.ascend(); // Go up to parent
@@ -438,13 +461,24 @@ public:
       }
     }
   }
+
 };
 
 inline auto CellOctree::preOrderDepthFirstRange() const {
-    return OctreeCellsRange<PreOrderDepthFirstPolicy>(
-        OctreeCursor(*this), // root cursor
-        OctreeCursor(*this, {}), // end cursor
-        PreOrderDepthFirstPolicy{});
+
+  OctreeCursor start{*this}; // root cursor
+  const PreOrderDepthFirstPolicy policy;
+  
+  while (!start.end() && !start.currentCell().has_value()) {
+    policy.advance(start);
   }
+
+  return OctreeCellsRange<PreOrderDepthFirstPolicy>(
+    start,
+    OctreeCursor(*this, {}), // end cursor
+    policy
+  );
+
+}
 
 } // namespace oktal
