@@ -5,7 +5,6 @@
 #include <span>
 #include <string_view>
 #include <vector>
-#include <cassert> 
 
 namespace oktal {
 
@@ -323,6 +322,8 @@ public:
   [[nodiscard]] std::optional<CellView> getRootCell() const;
 
   [[nodiscard]] auto preOrderDepthFirstRange() const;
+  [[nodiscard]] auto horizontalRange(std::size_t level) const;
+
 };
 
 // alias
@@ -350,7 +351,9 @@ public:
   // dereference operator
   [[nodiscard]] CellOctree::CellView operator*() const {
     auto cellOpt = cursor_.currentCell();
-    assert(cellOpt.has_value() && "Dereferencing an invalid iterator.");
+    if (!cellOpt.has_value()) {
+      throw std::logic_error("Dereferencing an invalid iterator.");
+    }
     return *cellOpt;
   }
 
@@ -480,5 +483,7 @@ inline auto CellOctree::preOrderDepthFirstRange() const {
   );
 
 }
+
+
 
 } // namespace oktal
