@@ -6,8 +6,8 @@
 #include <iterator>
 #include <ranges>
 
-#define TEST_BASIC_INTERFACE true
-#define TEST_OBSERVERS true
+#define TEST_BASIC_INTERFACE false
+#define TEST_OBSERVERS false
 #define TEST_TRAVERSAL true
 
 

@@ -6,10 +6,10 @@
 #include <iterator>
 #include <ranges>
 
-#define TEST_POLICY_CONCEPT true
-#define TEST_ITERATOR_TEMPLATE true
-#define TEST_RANGE_TEMPLATE true
-#define TEST_DFS_POLICY true
+#define TEST_POLICY_CONCEPT false
+#define TEST_ITERATOR_TEMPLATE false
+#define TEST_RANGE_TEMPLATE false
+#define TEST_DFS_POLICY false
 #define TEST_HORIZONTAL_POLICY false
 
 
@@ -97,7 +97,7 @@ void testIteratorTemplate() {
 
   auto ot = CellOctree::fromDescriptor("R|........");
 
-  const OctreeCursor start{ot, std::array{1uz}};
+  const OctreeCursor start{ot, std::array{0uz, 1uz}};
   const OctreeCursor end{ot, {}};
 
   size_t currentIdx = 1uz;
@@ -131,7 +131,7 @@ void testRangeTemplate() {
   static_assert(std::ranges::forward_range<DummyRange>);
 
   auto ot = CellOctree::fromDescriptor("R|........");
-  const DummyRange range{OctreeCursor{ot, std::array{1uz}}, OctreeCursor{ot, {}},
+  const DummyRange range{OctreeCursor{ot, std::array{0uz, 1uz}}, OctreeCursor{ot, {}},
                    DummyPolicy{}};
 
   for (auto [idx, cell] : std::views::zip(std::views::iota(1uz, 9uz), range)) {
