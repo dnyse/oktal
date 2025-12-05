@@ -174,6 +174,12 @@ public:
       for (std::size_t i = 1; i < path_.size(); ++i) {
         const Node& parent = octree_->nodesStream()[path_[i - 1]]; 
         std::size_t branch = path_[i] - parent.childrenStartIndex();
+
+        // check branch is valid
+        if (branch > 7) {
+          return {};
+        }
+
         branches.push_back(static_cast<morton_bits_t>(branch));
       }
 
@@ -479,6 +485,94 @@ inline auto CellOctree::preOrderDepthFirstRange() const {
 
 }
 
+// Horizontal Policy
+class HorizontalPolicy {
+public:
+  HorizontalPolicy() = default;
+  HorizontalPolicy(std::size_t level) : target_level_(level) {}
 
+  void advance(OctreeCursor& cursor) const {
+    if (cursor.end() || cursor.empty()) {
+      return;
+    }
+
+    do {
+      advanceToNextValid(cursor);
+    } while (!cursor.end() && !cursor.currentCell().has_value());
+  }
+
+private:
+  std::size_t target_level_;
+
+  void advanceToNextValid(OctreeCursor& cursor) const {
+    while (true) {
+      if (!cursor.lastSibling()) {
+        cursor.nextSibling();
+
+        // dive down to target level
+        if (diveToLevel(cursor)) {
+          return;
+        }
+      } 
+      else {
+        cursor.ascend(); // Go up to parent
+        if (cursor.path().empty()) {
+          cursor.toEnd();
+          return;
+        }
+      }
+    }
+  }
+
+  [[nodiscard]] bool diveToLevel(OctreeCursor& cursor) const {
+    while (cursor.currentLevel() <  target_level_) {
+      const auto& node = cursor.octree()->nodesStream()[cursor.currentStreamIndex()];
+      if (node.isRefined()) {
+        cursor.descend(0); 
+      } else {
+        return false;
+      }
+    }
+    return true; 
+  }
+};
+
+inline auto CellOctree::horizontalRange(std::size_t level) const {
+  OctreeCursor start(*this); 
+  const HorizontalPolicy policy(level);
+
+  if (level > 0) {
+    bool perfect_path = true;
+    OctreeCursor temp = start; 
+    
+    for (std::size_t i = 0; i < level; ++i) {
+       const auto& node = nodesStream()[temp.currentStreamIndex()];
+       if (node.isRefined()) {
+         temp.descend(0);
+       } else {
+         perfect_path = false; 
+         break; 
+       }
+    }
+
+    start = temp;
+
+    // if target level not reached, advance
+    if (!perfect_path) {
+       policy.advance(start);
+    }
+  }
+
+  // advance to first valid cell
+  while (!start.end() && !start.currentCell().has_value()) {
+      policy.advance(start);
+  }
+
+  return OctreeCellsRange<HorizontalPolicy>(
+      start,
+      OctreeCursor(*this, {}), // end cursor
+      policy
+  );
+}
 
 } // namespace oktal
