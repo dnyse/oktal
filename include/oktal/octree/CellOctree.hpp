@@ -112,13 +112,8 @@ public:
     // constructor with octree reference and path
     OctreeCursor(const CellOctree& octree, std::span<const std::size_t> path) : octree_(&octree) {
       if (!path.empty()) {
-        
-        if (path.size() == 1) {
-          path_.push_back(0); // Root node
-          path_.push_back(path[0]); // stream index
-        } else {
-        path_.assign(path.begin(), path.end());}
-        }
+        path_.assign(path.begin(), path.end());
+      }
     }
      
     [[nodiscard]] const CellOctree* octree() const {
