@@ -29,13 +29,19 @@ int main(int argc, char* argv[]) {
         std::println("Successfully created {}", filepath.string());
 
     } catch (const std::exception& e) {
-        
-        std::println(std::clog, "Error: {}", e.what());
+        try {
+            std::println(std::clog, "Error: {}", e.what());
+        } catch (...) {
+            return 1;
+        }
         return 1;
 
     } catch (...) {
-        
-        std::println(std::clog, "An unknown error occurred.");
+        try {
+            std::println(std::clog, "An unknown error occurred.");
+        } catch (...) {
+            return 1;
+        }
         return 1;
 
     }
