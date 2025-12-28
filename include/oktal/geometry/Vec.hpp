@@ -40,6 +40,18 @@ public:
     return !(lhs == rhs);
   }
 
+  friend bool operator<(const Vec &lhs, const Vec &rhs) {
+    for (std::size_t i = 0; i < DIM; ++i) {
+      if (lhs[i] < rhs[i]) {
+        return true;
+      }
+      if (lhs[i] > rhs[i]) {
+        return false;
+      }
+    }
+    return false;
+  }
+
   // Range Interface
   T *begin();
   [[nodiscard]] const T *begin() const;
@@ -103,7 +115,7 @@ template <typename T, std::size_t DIM>
 template <typename S>
 Vec<T, DIM>::Vec(const Vec<S, DIM> &other) {
   std::transform(other.begin(), other.end(), v_.begin(),
-                 [](const S& val) { return static_cast<T>(val); });
+                 [](const S &val) { return static_cast<T>(val); });
 }
 
 // Element access
