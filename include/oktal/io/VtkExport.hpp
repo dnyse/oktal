@@ -1,10 +1,58 @@
 #pragma once
+#include "advpt/htgfile/VtkHtgFile.hpp"
+#include "oktal/octree/CellGrid.hpp"
 #include "oktal/octree/CellOctree.hpp"
 #include <filesystem>
+
+namespace advpt::htgfile {
+class SnapshotHtgFile;
+}
 
 namespace oktal::io::vtk {
 
 void exportOctree(const CellOctree &octree,
                   const std::filesystem::path &filepath);
+
+class CellGridExporter {
+public:
+  CellGridExporter(std::unique_ptr<advpt::htgfile::SnapshotHtgFile> htg_file,
+                   const CellGrid &cells);
+
+  template <typename T>
+  CellGridExporter &writeGridVector(const std::string &name,
+                                    std::span<const T> grid_vector);
+
+private:
+  std::unique_ptr<advpt::htgfile::SnapshotHtgFile> htg_file_;
+  const CellGrid *cells_;
+  std::size_t total_nodes_;
+};
+
+CellGridExporter exportCellGrid(const CellGrid &cells,
+                                const std::filesystem::path &filepath);
+
+template <typename T>
+CellGridExporter &
+CellGridExporter::writeGridVector(const std::string &name,
+                                  std::span<const T> grid_vector) {
+  std::vector<T> cell_data(total_nodes_, T{0});
+
+  const auto morton_indices = cells_->mortonIndices();
+  const auto &octree = cells_->octree();
+
+  for (std::size_t enum_idx = 0; enum_idx < morton_indices.size(); ++enum_idx) {
+    if (enum_idx < grid_vector.size()) {
+      const MortonIndex morton_idx = morton_indices[enum_idx];
+      const auto cell = octree.getCell(morton_idx);
+      if (cell) {
+        const std::size_t stream_idx = cell->streamIndex();
+        cell_data[stream_idx] = grid_vector[enum_idx];
+      }
+    }
+  }
+  htg_file_->writeCellData<T>(name, cell_data);
+
+  return *this;
+}
 
 } // namespace oktal::io::vtk

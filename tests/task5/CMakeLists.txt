@@ -35,24 +35,24 @@ endforeach()
 
 ############## Tests for b) Utilities
 
-# set( TestApp TestUtilities )
-#
-# add_executable( ${TestApp} ${TestApp}.cpp )
-# target_link_libraries( ${TestApp} PRIVATE oktal advpt::testing )
-# add_dependencies( OktalTests-Task${_Task} ${TestApp} )
-#
-# set(
-#   TestIDs
-#   testUniformGrid
-#   testVtkExport
-# )
-#
-# foreach( TestID ${TestIDs} )
-#   set( TestName "${TestApp} - ${TestID}" )
-#   add_test( NAME ${TestName} COMMAND $<TARGET_FILE:${TestApp}> ${TestID} )
-#   set_tests_properties( ${TestName} PROPERTIES LABELS "Task${_Task};Milestone${_Milestone}" )
-# endforeach()
-#
+set( TestApp TestUtilities )
+
+add_executable( ${TestApp} ${TestApp}.cpp )
+target_link_libraries( ${TestApp} PRIVATE oktal advpt::testing )
+add_dependencies( OktalTests-Task${_Task} ${TestApp} )
+
+set(
+  TestIDs
+  testUniformGrid
+  testVtkExport
+)
+
+foreach( TestID ${TestIDs} )
+  set( TestName "${TestApp} - ${TestID}" )
+  add_test( NAME ${TestName} COMMAND $<TARGET_FILE:${TestApp}> ${TestID} )
+  set_tests_properties( ${TestName} PROPERTIES LABELS "Task${_Task};Milestone${_Milestone}" )
+endforeach()
+
 # ############## Tests for Poisson Solver
 #
 # set( TestName TestPoisson )
