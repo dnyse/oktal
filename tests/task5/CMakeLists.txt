@@ -54,21 +54,21 @@ foreach( TestID ${TestIDs} )
 endforeach()
 
 # ############## Tests for Poisson Solver
-#
-# set( TestName TestPoisson )
-#
-# if(TARGET poisson)
-#   add_dependencies( OktalTests-Task${_Task} poisson )
-#   set( _PoissonExecutable $<TARGET_FILE:poisson> )
-# else()
-#   set( _PoissonExecutable NOTFOUND )
-# endif()
-#
-# add_test(
-#     NAME ${TestName}
-#     COMMAND 
-#       ${CMAKE_COMMAND}
-#       -D PoissonExecutable=${_PoissonExecutable}
-#       -P ${CMAKE_CURRENT_SOURCE_DIR}/TestPoisson.cmake 
-#   )
-# set_tests_properties( ${TestName} PROPERTIES LABELS "Task${_Task};Milestone${_Milestone}" )
+
+set( TestName TestPoisson )
+
+if(TARGET poisson)
+  add_dependencies( OktalTests-Task${_Task} poisson )
+  set( _PoissonExecutable $<TARGET_FILE:poisson> )
+else()
+  set( _PoissonExecutable NOTFOUND )
+endif()
+
+add_test(
+    NAME ${TestName}
+    COMMAND 
+      ${CMAKE_COMMAND}
+      -D PoissonExecutable=${_PoissonExecutable}
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/TestPoisson.cmake 
+  )
+set_tests_properties( ${TestName} PROPERTIES LABELS "Task${_Task};Milestone${_Milestone}" )
