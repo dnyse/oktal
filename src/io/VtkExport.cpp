@@ -1,5 +1,4 @@
 #include "oktal/io/VtkExport.hpp"
-#include "advpt/htgfile/VtkHtgFile.hpp"
 #include "oktal/geometry/Box.hpp"
 
 namespace oktal::io::vtk {
@@ -65,6 +64,30 @@ void exportOctree(const CellOctree &octree,
 
   auto htg_file = advpt::htgfile::SnapshotHtgFile::create(filepath, hyperTree);
   htg_file.writeCellData<int>("level", level_data);
+}
+
+CellGridExporter::CellGridExporter(
+    std::unique_ptr<advpt::htgfile::SnapshotHtgFile> htg_file,
+    const CellGrid &cells)
+    : htg_file_(std::move(htg_file)), cells_(&cells) {
+  const auto &octree = cells_->octree();
+  for (std::size_t level = 0; level < octree.numberOfLevels(); ++level) {
+    total_nodes_ += octree.numberOfNodes(level);
+  }
+}
+
+CellGridExporter exportCellGrid(const CellGrid &cells,
+                                const std::filesystem::path &filepath) {
+  std::vector<int> level_data;
+  const auto &octree = cells.octree();
+  const HyperTree hyperTree = createHyperTree(octree, level_data);
+
+  auto htg_file = std::make_unique<advpt::htgfile::SnapshotHtgFile>(
+      advpt::htgfile::SnapshotHtgFile::create(filepath, hyperTree));
+
+  htg_file->writeCellData<int>("level", level_data);
+
+  return {std::move(htg_file), cells};
 }
 
 } // namespace oktal::io::vtk
