@@ -69,7 +69,7 @@ void exportOctree(const CellOctree &octree,
 CellGridExporter::CellGridExporter(
     std::unique_ptr<advpt::htgfile::SnapshotHtgFile> htg_file,
     const CellGrid &cells)
-    : htg_file_(std::move(htg_file)), cells_(&cells), total_nodes_(0) {
+    : htg_file_(std::move(htg_file)), cells_(&cells) {
   const auto &octree = cells_->octree();
   for (std::size_t level = 0; level < octree.numberOfLevels(); ++level) {
     total_nodes_ += octree.numberOfNodes(level);
