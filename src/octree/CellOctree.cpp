@@ -201,7 +201,7 @@ CellOctree::createUniformGrid(OctreeGeometry geom, size_t level) {
   std::size_t total_nodes = 0;
 
   for (std::size_t l = 0; l <= level; ++l) {
-    std::size_t nodes_on_level = std::size_t(1) << (3 * l);
+    const std::size_t nodes_on_level = std::size_t(1) << (3 * l);
     octree->nodes_per_level_[l] = nodes_on_level;
     octree->level_start_idx_[l] = total_nodes;
     total_nodes += nodes_on_level;
@@ -209,15 +209,15 @@ CellOctree::createUniformGrid(OctreeGeometry geom, size_t level) {
   octree->nodes_.resize(total_nodes);
 
   for (std::size_t l = 0; l < level; ++l) {
-    std::size_t level_start = octree->level_start_idx_[l];
-    std::size_t next_level_start = octree->level_start_idx_[l + 1];
+    const std::size_t level_start = octree->level_start_idx_[l];
+    const std::size_t next_level_start = octree->level_start_idx_[l + 1];
     for (std::size_t i = 0; i < octree->nodes_per_level_[l]; i++) {
       octree->nodes_[level_start + i] =
           Node(true, true, next_level_start + (i * 8));
     }
   }
 
-  std::size_t start_leaf = octree->level_start_idx_[level];
+  const std::size_t start_leaf = octree->level_start_idx_[level];
   for (std::size_t i = 0; i < octree->nodes_per_level_[level]; ++i) {
     octree->nodes_[start_leaf + i] = Node(false, false, 0);
   }
@@ -226,7 +226,7 @@ CellOctree::createUniformGrid(OctreeGeometry geom, size_t level) {
 }
 
 std::shared_ptr<const CellOctree> CellOctree::createUniformGrid(size_t level) {
-  OctreeGeometry geometry;
+  const OctreeGeometry geometry;
   return createUniformGrid(geometry, level);
 }
 } // namespace oktal

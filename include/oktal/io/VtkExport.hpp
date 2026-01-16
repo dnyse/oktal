@@ -25,7 +25,7 @@ public:
 private:
   std::unique_ptr<advpt::htgfile::SnapshotHtgFile> htg_file_;
   const CellGrid *cells_;
-  std::size_t total_nodes_;
+  std::size_t total_nodes_{0};
 };
 
 CellGridExporter exportCellGrid(const CellGrid &cells,
