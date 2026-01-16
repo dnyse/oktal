@@ -1,8 +1,57 @@
 #include "oktal/octree/CellGrid.hpp"
 #include <algorithm>
+#include <ranges>
 #include <stdexcept>
 
 namespace oktal {
+
+namespace {
+
+std::size_t findNeighborEnumIndex(
+    const MortonIndex &cell_morton, const Vec<std::ptrdiff_t, 3> &offset,
+    const std::function<std::optional<Vec<std::size_t, 3>>(Vec<std::ptrdiff_t, 3>,
+                                                           std::size_t)>
+        &periodicity_mapper,
+    const CellOctree &octree, const CellGrid &grid) {
+  const auto cell_coords = cell_morton.gridCoordinates();
+  const std::size_t cell_level = cell_morton.level();
+
+  Vec<std::ptrdiff_t, 3> neighbor_coords_signed;
+  neighbor_coords_signed[0] =
+      static_cast<std::ptrdiff_t>(cell_coords[0]) + offset[0];
+  neighbor_coords_signed[1] =
+      static_cast<std::ptrdiff_t>(cell_coords[1]) + offset[1];
+  neighbor_coords_signed[2] =
+      static_cast<std::ptrdiff_t>(cell_coords[2]) + offset[2];
+
+  auto neighbor_coords_unsigned =
+      periodicity_mapper(neighbor_coords_signed, cell_level);
+
+  if (!neighbor_coords_unsigned.has_value()) {
+    return CellGrid::NO_NEIGHBOR;
+  }
+
+  const MortonIndex neighbor_morton = MortonIndex::fromGridCoordinates(
+      cell_level, neighbor_coords_unsigned.value());
+
+  if (!octree.cellExists(neighbor_morton)) {
+    return CellGrid::NO_NEIGHBOR;
+  }
+
+  auto neighbor_cell = octree.getCell(neighbor_morton);
+  if (!neighbor_cell) {
+    return CellGrid::NO_NEIGHBOR;
+  }
+
+  const std::size_t neighbor_enum_idx = grid.getEnumerationIndex(*neighbor_cell);
+  if (neighbor_enum_idx == CellGrid::NOT_ENUMERATED) {
+    return CellGrid::NO_NEIGHBOR;
+  }
+
+  return neighbor_enum_idx;
+}
+
+} // namespace
 
 const CellOctree &CellGrid::octree() const { return *octree_; }
 
@@ -69,11 +118,11 @@ CellGrid CellGrid::CellGridBuilder::build() const {
     levels_to_enumerate = levels_;
   }
 
-  std::sort(levels_to_enumerate.begin(), levels_to_enumerate.end());
+  std::ranges::sort(levels_to_enumerate);
 
   std::size_t enum_index = 0;
 
-  for (std::size_t level : levels_to_enumerate) {
+  for (const std::size_t level : levels_to_enumerate) {
     for (auto cell : octree_->horizontalRange(level)) {
       grid.morton_indices_.push_back(cell.mortonIndex());
       grid.stream_to_enum_[cell.streamIndex()] = enum_index;
@@ -91,36 +140,12 @@ CellGrid CellGrid::CellGridBuilder::build() const {
 
     for (std::size_t i = 0; i < num_cells; ++i) {
       const MortonIndex &cell_morton = grid.morton_indices_[i];
-      const auto cell_coords = cell_morton.gridCoordinates();
-      const std::size_t cell_level = cell_morton.level();
 
       for (const auto &offset : neighborhood_) {
-        Vec<std::ptrdiff_t, 3> neighbor_coords_signed;
-        neighbor_coords_signed[0] =
-            static_cast<std::ptrdiff_t>(cell_coords[0]) + offset[0];
-        neighbor_coords_signed[1] =
-            static_cast<std::ptrdiff_t>(cell_coords[1]) + offset[1];
-        neighbor_coords_signed[2] =
-            static_cast<std::ptrdiff_t>(cell_coords[2]) + offset[2];
-
-        auto neighbor_coords_unsigned =
-            periodicity_mapper_(neighbor_coords_signed, cell_level);
-
-        if (neighbor_coords_unsigned.has_value()) {
-          MortonIndex neighbor_morton = MortonIndex::fromGridCoordinates(
-              cell_level, neighbor_coords_unsigned.value());
-
-          if (octree_->cellExists(neighbor_morton)) {
-            auto neighbor_cell = octree_->getCell(neighbor_morton);
-            if (neighbor_cell) {
-              std::size_t neighbor_enum_idx =
-                  grid.getEnumerationIndex(*neighbor_cell);
-
-              if (neighbor_enum_idx != NOT_ENUMERATED) {
-                grid.adjacency_lists_[offset][i] = neighbor_enum_idx;
-              }
-            }
-          }
+        const std::size_t neighbor_idx = findNeighborEnumIndex(
+            cell_morton, offset, periodicity_mapper_, *octree_, grid);
+        if (neighbor_idx != NO_NEIGHBOR) {
+          grid.adjacency_lists_[offset][i] = neighbor_idx;
         }
       }
     }
@@ -179,7 +204,7 @@ CellGrid::CellView::neighbor(Vec<std::ptrdiff_t, 3> offset) const {
 
   try {
     auto neighbors = grid_->neighborIndices(offset);
-    std::size_t neighbor_idx = neighbors[enum_index_];
+    const std::size_t neighbor_idx = neighbors[enum_index_];
 
     if (neighbor_idx == NO_NEIGHBOR) {
       return {};
