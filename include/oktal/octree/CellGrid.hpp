@@ -52,7 +52,7 @@ public:
     const auto max_coord = static_cast<std::ptrdiff_t>(1ULL << level);
     Vec<std::size_t, 3> result;
     for (std::size_t i = 0; i < 3; i++) {
-      if (periodicity_[i]) {
+      if (periodicity_.at(i)) { // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         std::ptrdiff_t wrapped = coords[i] % max_coord;
         if (wrapped < 0) {
           wrapped += max_coord;
