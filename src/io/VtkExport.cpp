@@ -3,6 +3,7 @@
 
 namespace oktal::io::vtk {
 using advpt::htgfile::HyperTree;
+using advpt::htgfile::SnapshotHtgFile;
 
 // WARN: Because the bit streams are packed (for both mask and description) in
 // uint8_t including the root node, the byte boundary falls between the 7th and
@@ -62,13 +63,12 @@ void exportOctree(const CellOctree &octree,
   std::vector<int> level_data;
   const HyperTree hyperTree = createHyperTree(octree, level_data);
 
-  auto htg_file = advpt::htgfile::SnapshotHtgFile::create(filepath, hyperTree);
+  auto htg_file = SnapshotHtgFile::create(filepath, hyperTree);
   htg_file.writeCellData<int>("level", level_data);
 }
 
-CellGridExporter::CellGridExporter(
-    std::unique_ptr<advpt::htgfile::SnapshotHtgFile> htg_file,
-    const CellGrid &cells)
+CellGridExporter::CellGridExporter(std::unique_ptr<SnapshotHtgFile> htg_file,
+                                   const CellGrid &cells)
     : htg_file_(std::move(htg_file)), cells_(&cells) {
   const auto &octree = cells_->octree();
   for (std::size_t level = 0; level < octree.numberOfLevels(); ++level) {
@@ -82,8 +82,8 @@ CellGridExporter exportCellGrid(const CellGrid &cells,
   const auto &octree = cells.octree();
   const HyperTree hyperTree = createHyperTree(octree, level_data);
 
-  auto htg_file = std::make_unique<advpt::htgfile::SnapshotHtgFile>(
-      advpt::htgfile::SnapshotHtgFile::create(filepath, hyperTree));
+  auto htg_file = std::make_unique<SnapshotHtgFile>(
+      SnapshotHtgFile::create(filepath, hyperTree));
 
   htg_file->writeCellData<int>("level", level_data);
 
