@@ -30,7 +30,7 @@ FetchContent_Declare(
     URL https://teaching.pages.i10git.cs.fau.de/advpt-exercise-ws2526/assets/advpt-helpers.tar.gz
 )
 FetchContent_MakeAvailable( advpt-helpers )
-target_link_libraries(oktal PUBLIC advpt::htgfile)
+target_link_libraries(oktal PUBLIC advpt::htgfile advpt::mdspan)
 
 # debugging application
 
