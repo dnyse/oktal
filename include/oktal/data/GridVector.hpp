@@ -92,29 +92,23 @@ public:
     return const_view();
   }
 
-  T &operator[](std::size_t cell_idx)
-    requires(NUM_COMPONENTS == 1)
-  {
-    return view()[cell_idx];
-  }
+  // element access
+    T& operator[](std::size_t i, std::size_t q) {
+        if constexpr (Q == 1) {
+            return view()[i]; // 1D
+        } else {
+            return view()[i, q]; // 2D
+        }
+    }
 
-  const T &operator[](std::size_t cell_idx) const
-    requires(NUM_COMPONENTS == 1)
-  {
-    return view()[cell_idx];
-  }
+    const T& operator[](std::size_t i, std::size_t q) const {
+        if constexpr (Q == 1) {
+            return const_view()[i]; // 1D
+        } else {
+            return const_view()[i, q]; // 2D
+        }
+    }
 
-  T &operator[](std::size_t cell_idx, std::size_t comp_idx)
-    requires(NUM_COMPONENTS > 1)
-  {
-    return view()[cell_idx, comp_idx];
-  }
-
-  const T &operator[](std::size_t cell_idx, std::size_t comp_idx) const
-    requires(NUM_COMPONENTS > 1)
-  {
-    return view()[cell_idx, comp_idx];
-  }
 };
 
 } // namespace oktal

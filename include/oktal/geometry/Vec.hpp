@@ -14,12 +14,12 @@ private:
 
 public:
   // Constructors
-  Vec();
-  Vec(const T &value);
-  Vec(std::initializer_list<T> list);
+  constexpr Vec();
+  constexpr Vec(const T &value);
+  constexpr Vec(std::initializer_list<T> list);
 
   // Converting Constructor
-  template <typename S> Vec(const Vec<S, DIM> &other);
+  template <typename S> constexpr Vec(const Vec<S, DIM> &other);
 
   // Element access
   T &operator[](std::size_t i);             // Write
@@ -93,16 +93,18 @@ Vec<T, DIM> operator/(const Vec<T, DIM> &vec, const S &scalar);
 // ====== Implementations ======
 
 // Constructors
-template <typename T, std::size_t DIM> Vec<T, DIM>::Vec() {
+template <typename T, std::size_t DIM> 
+constexpr Vec<T, DIM>::Vec() {
   std::fill(v_.begin(), v_.end(), T{});
 }
 
-template <typename T, std::size_t DIM> Vec<T, DIM>::Vec(const T &value) {
+template <typename T, std::size_t DIM> 
+constexpr Vec<T, DIM>::Vec(const T &value) {
   std::fill(v_.begin(), v_.end(), value);
 }
 
 template <typename T, std::size_t DIM>
-Vec<T, DIM>::Vec(std::initializer_list<T> list) {
+constexpr Vec<T, DIM>::Vec(std::initializer_list<T> list) {
   const std::size_t copy_count = std::min(DIM, list.size());
   std::copy(list.begin(), list.begin() + copy_count, v_.begin());
   if (copy_count < DIM) {
@@ -113,7 +115,7 @@ Vec<T, DIM>::Vec(std::initializer_list<T> list) {
 // Converting Constructor
 template <typename T, std::size_t DIM>
 template <typename S>
-Vec<T, DIM>::Vec(const Vec<S, DIM> &other) {
+constexpr Vec<T, DIM>::Vec(const Vec<S, DIM> &other) {
   std::transform(other.begin(), other.end(), v_.begin(),
                  [](const S &val) { return static_cast<T>(val); });
 }
