@@ -2,11 +2,7 @@
 
 Oktal is a C++23 adaptive octree library designed for computational physics and numerical simulations. It provides efficient spatial partitioning data structures commonly used in adaptive mesh refinement (AMR) for finite element and finite difference computations.
 
-
-https://i10git.cs.fau.de/advpt-student/ws2025-group-45/assets/taylor_green_vortex_ref_7.mp4
-
-<video src="media/taylor_green_vortex_ref_7.mp4" controls="controls" style="max-width: 730px;">
-</video>
+![](media/taylor_green_vortex_ref_7.mp4)
 
 Taylor-Green vortex simulation at refinement level 7.
 ## Authors
