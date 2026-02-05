@@ -70,7 +70,7 @@ CellGridExporter &
 CellGridExporter::writeGridVector(const std::string &id,
                                   GridVectorView<const T, Q> vector) {
   std::vector<T> cell_data(total_nodes_ * Q, T{0});
-  MdCellDataView<T, 2> cell_data_view(cell_data.data(), total_nodes_, Q);
+  const MdCellDataView<T, 2> cell_data_view(cell_data.data(), total_nodes_, Q);
 
   const auto morton_indices = cells_->mortonIndices();
   const auto &octree = cells_->octree();

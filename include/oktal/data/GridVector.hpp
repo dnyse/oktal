@@ -35,7 +35,8 @@ template <std::semiregular T, std::size_t Q>
   requires(Q > 0)
 class GridVector {
 private:
-  std::unique_ptr<T[]> data_;
+  std::unique_ptr<T[]>
+      data_; // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
   std::size_t num_cells_ = 0;
 
 public:
