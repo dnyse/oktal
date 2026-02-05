@@ -2,6 +2,13 @@
 
 Oktal is a C++23 adaptive octree library designed for computational physics and numerical simulations. It provides efficient spatial partitioning data structures commonly used in adaptive mesh refinement (AMR) for finite element and finite difference computations.
 
+
+https://i10git.cs.fau.de/advpt-student/ws2025-group-45/assets/taylor_green_vortex_ref_7.mp4
+
+<video src="media/taylor_green_vortex_ref_7.mp4" controls="controls" style="max-width: 730px;">
+</video>
+
+Taylor-Green vortex simulation at refinement level 7.
 ## Authors
 
 - **Can Beydogan** (@eb99ykof)
@@ -15,6 +22,8 @@ Oktal is a C++23 adaptive octree library designed for computational physics and 
 - **Periodic Boundary Conditions**: Configurable torus topology with per-axis periodicity
 - **CellGrid Abstraction**: Higher-level grid interface with pre-computed neighbor adjacency lists
 - **VTK/HDF5 Export**: Visualization output via HighFive for scientific data analysis
+- **Lattice Boltzmann Method**: D3Q19 lattice implementation with collision and streaming operators
+- **Taylor-Green Vortex**: LBM simulation with analytical solution validation
 - **Poisson Solver**: Example application demonstrating a Jacobi iterative solver
 
 ## Project Structure
@@ -24,10 +33,11 @@ oktal/
 ├── include/oktal/
 │   ├── geometry/       # Vec, Box, PeriodicBox
 │   ├── octree/         # MortonIndex, CellOctree, CellGrid, OctreeGeometry
+│   ├── lbm/            # D3Q19, LbmKernels, TaylorGreen
 │   └── io/             # VtkExport
 ├── src/                # Implementation files
 ├── tests/              # Test suite organized by task
-└── apps/               # Applications (create-htgfile, poisson)
+└── apps/               # Applications (create-htgfile, poisson, tgv)
 ```
 
 ## Key Components
@@ -40,13 +50,18 @@ oktal/
 | `MortonIndex` | Z-order curve index for 3D hierarchical positions |
 | `CellOctree` | Core octree with nodes, cursors, and iterators |
 | `CellGrid` | Enumerated cell collection with adjacency lookup |
+| `D3Q19Lattice` | 3D lattice with 19 velocity directions for LBM |
+| `LbmKernels` | Collision, streaming, and macroscopic quantity kernels |
+| `TaylorGreen` | Analytical solution for Taylor-Green vortex validation |
 | `VtkExport` | Export utilities for visualization |
 
-## Poisson Solver
+## Applications
+
+### Poisson Solver
 
 The `poisson` application solves the 3D Poisson equation using the Jacobi iterative method on a uniform octree grid.
 
-### Usage
+#### Usage
 
 ```bash
 ./build/apps/poisson <refinementLevel> <max-iterations> <epsilon> <output-file>
@@ -63,7 +78,7 @@ The `poisson` application solves the 3D Poisson equation using the Jacobi iterat
 ./build/apps/poisson 4 1000 1e-6 poisson_solution.vtk
 ```
 
-### Output
+#### Output
 
 The solver writes a VTK HDF file containing:
 - `u`: Computed solution field
@@ -71,6 +86,39 @@ The solver writes a VTK HDF file containing:
 - `residual`: Final residual field
 
 These can be visualized using ParaView or similar tools.
+
+### Taylor-Green Vortex (TGV) Simulation
+
+The `tgv` application simulates the Taylor-Green vortex flow using the Lattice Boltzmann Method (D3Q19) on a uniform octree grid with periodic boundary conditions.
+
+#### Usage
+
+```bash
+./build/apps/tgv <refinement-level> <output-directory>
+```
+
+**Parameters:**
+- `refinement-level`: Grid refinement level (minimum 5, e.g., 6 creates a grid with 262144 cells)
+- `output-directory`: Directory where output files will be saved
+
+**Example:**
+```bash
+./build/apps/tgv 6 output
+```
+
+#### Output
+
+The simulation produces:
+- Time series VTK HDF files (`step*.vtkhdf`) exported every 50 timesteps
+- Final results file (`tgv_results.vtkhdf`) containing:
+  - `density`: Fluid density field
+  - `velocity`: Velocity field components
+  - `velocity_error`: Error compared to analytical solution
+- Error metrics file (`errors.txt`) with L2 errors for velocity components
+
+#### Visualization
+
+Results can be visualized using ParaView.
 
 ## Prerequisites
 
