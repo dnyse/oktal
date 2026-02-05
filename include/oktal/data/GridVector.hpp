@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <experimental/mdspan>
 #include <memory>
+#include <vector>
 
 namespace oktal {
 
@@ -35,8 +36,7 @@ template <std::semiregular T, std::size_t Q>
   requires(Q > 0)
 class GridVector {
 private:
-  std::unique_ptr<T[]>
-      data_; // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+  std::vector<T> data_;
   std::size_t num_cells_ = 0;
 
 public:
@@ -44,64 +44,48 @@ public:
   static constexpr std::size_t NUM_COMPONENTS = Q;
 
   explicit GridVector(const CellGrid &cells)
-      : data_(new T[cells.size() * NUM_COMPONENTS]), num_cells_(cells.size()) {}
-  // std::unique_ptr<T[]> automatically calls delete[] on destruction
+      : data_(cells.size() * NUM_COMPONENTS), num_cells_(cells.size()) {}
+  // std::vector automatically manages memory
   ~GridVector() = default;
 
   GridVector(const GridVector &other)
-      : data_(new T[other.num_cells_ * NUM_COMPONENTS]),
-        num_cells_(other.num_cells_) {
-    std::copy_n(other.data_.get(), num_cells_ * NUM_COMPONENTS, data_.get());
-  }
+      : data_(other.data_), num_cells_(other.num_cells_) {}
 
   GridVector &operator=(const GridVector &other) {
     if (this != &other) {
-      if (num_cells_ != other.num_cells_) {
-        data_.reset(new T[other.num_cells_ * NUM_COMPONENTS]);
-        num_cells_ = other.num_cells_;
-      }
-      std::copy_n(other.data_.get(), num_cells_ * NUM_COMPONENTS, data_.get());
-    }
-    return *this;
-  }
-
-  GridVector(GridVector &&other) noexcept
-      : data_(std::move(other.data_)), num_cells_(other.num_cells_) {
-    other.num_cells_ = 0;
-  }
-
-  GridVector &operator=(GridVector &&other) noexcept {
-    if (this != &other) {
-      data_ = std::move(other.data_);
+      data_ = other.data_;
       num_cells_ = other.num_cells_;
-      other.num_cells_ = 0;
     }
     return *this;
   }
+
+  GridVector(GridVector &&other) noexcept = default;
+
+  GridVector &operator=(GridVector &&other) noexcept = default;
 
   [[nodiscard]] std::size_t allocSize() const noexcept {
     return num_cells_ * NUM_COMPONENTS;
   }
 
-  // unique_ptr returns raw poiter
+  // vector::data() returns raw pointer
   // The contract is:
   // 1. The caller must not delete the returned pointer
   // 2. The pointer is valid only while the GridVector exists and hasn't been
   // moved from
-  [[nodiscard]] T *data() noexcept { return data_.get(); }
+  [[nodiscard]] T *data() noexcept { return data_.data(); }
 
-  [[nodiscard]] const T *data() const noexcept { return data_.get(); }
+  [[nodiscard]] const T *data() const noexcept { return data_.data(); }
 
   [[nodiscard]] GridVectorView<T, NUM_COMPONENTS> view() {
-    return GridVectorView<T, NUM_COMPONENTS>(data_.get(), num_cells_);
+    return GridVectorView<T, NUM_COMPONENTS>(data_.data(), num_cells_);
   }
 
   [[nodiscard]] GridVectorView<const T, NUM_COMPONENTS> view() const {
-    return GridVectorView<const T, NUM_COMPONENTS>(data_.get(), num_cells_);
+    return GridVectorView<const T, NUM_COMPONENTS>(data_.data(), num_cells_);
   }
 
   [[nodiscard]] GridVectorView<const T, NUM_COMPONENTS> const_view() const {
-    return GridVectorView<const T, NUM_COMPONENTS>(data_.get(), num_cells_);
+    return GridVectorView<const T, NUM_COMPONENTS>(data_.data(), num_cells_);
   }
   operator GridVectorView<T, NUM_COMPONENTS>() { return view(); }
   operator GridVectorView<const T, NUM_COMPONENTS>() const {
