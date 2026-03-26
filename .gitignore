@@ -11,3 +11,6 @@
 **/.spack-env
 
 **/.cache
+
+#   Output
+output/
